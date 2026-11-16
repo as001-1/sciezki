@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ścieżki przyrodnicze</title>
+<style>
+:root{--bg:#f4f1e8;--card:#fffdf7;--ink:#1f2a1f;--mut:#5d6b5a;--acc:#2f6b3a;--acc2:#c8553d;--line:#ddd8c6;--map:#e3e9d6;--onacc:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a14;--card:#1d261d;--ink:#e8eee2;--mut:#9fb09b;--acc:#7fc48b;--acc2:#e8856e;--line:#2c382c;--map:#1a241b;--onacc:#10170f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141a14;--card:#1d261d;--ink:#e8eee2;--mut:#9fb09b;--acc:#7fc48b;--acc2:#e8856e;--line:#2c382c;--map:#1a241b;--onacc:#10170f;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+h1,h2{font-family:Georgia,"Times New Roman",serif;line-height:1.2;margin:0}
+h1{font-size:1.8rem}
+h2{font-size:1.2rem;margin:26px 0 10px}
+.kick{color:var(--acc);font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.lead{color:var(--mut);margin:8px 0 14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.85rem}
+.chip b{color:var(--acc)}
+.tabs{display:flex;gap:8px;overflow-x:auto;margin:0 0 16px;padding-bottom:4px}
+.tabs button{flex:none;font:inherit;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--acc);color:var(--onacc);border-color:var(--acc)}
+.map{margin-top:18px;background:var(--map);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.map svg{display:block;width:100%;height:auto}
+.pin{cursor:pointer}
+.pin circle{fill:var(--acc2);stroke:var(--card);stroke-width:3}
+.pin text{fill:#fff;font:700 13px system-ui,sans-serif;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.pin.on circle{stroke:var(--ink);stroke-width:3}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:14px}
+.cat{display:inline-block;background:var(--map);color:var(--acc);border-radius:6px;padding:2px 10px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.fact{margin-top:14px;padding:12px 14px;border-left:4px solid var(--acc2);background:var(--map);border-radius:0 8px 8px 0}
+.fact b{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--acc2)}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.list button{width:100%;display:flex;gap:12px;align-items:center;text-align:left;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer}
+.list button[aria-current="true"]{border-color:var(--acc);box-shadow:0 0 0 2px var(--acc) inset}
+.num{flex:none;width:28px;height:28px;border-radius:50%;background:var(--acc2);color:#fff;font-weight:700;display:grid;place-items:center;font-size:.85rem}
+.list small{color:var(--mut);display:block}
+.go{display:inline-block;margin-top:14px;color:var(--acc);font-weight:600}
+.empty{color:var(--mut)}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+var DATA = {
+"sciezki": {"features":[{"properties":{"id":1,"id_sciezki":"widowo","nawa":"widowo rezerwat","opis":"ścieżka przez rezerwat","dlugosc_km":6.6,"czas_min":60,"trudnosc":"łatwa","typ":"pętla","psy":"nie","wozki":"nie"},"geometry":{"type":"MultiLineString","coordinates":[[[18.141994789335904,54.829627191358547],[18.138490516832526,54.829529746656995],[18.136436288123647,54.829181727945802],[18.135566261846954,54.829070361324639],[18.134333724621627,54.829181727945802],[18.132376165499046,54.829098203008733],[18.131264465256596,54.828917231718968],[18.129621082289493,54.828972915279117],[18.128219373288143,54.828958994396295],[18.118141568916357,54.828429997291551],[18.117851560157458,54.829014677898869],[18.117078203467059,54.829529746656995]]]}}]},
+"punkty": {"features":[{"properties":{"id":1,"kolejnosc":1,"id_sciezki":"widowo","tytul":"pomniowy  buk","kategoria":"roślinność","opis":"drzewo ktore ma 300 lat jest ładne","zdjecie":"buk.jpg","ciekawostk":"w 2020 gniazdował tu puchacz","id_punkt":"buk-01"},"geometry":{"type":"Point","coordinates":[18.130101409296412,54.828985096047667]}}]}
+};
+
+var app = document.getElementById('app');
+var fix = function(s){ s = String(s == null ? '' : s).replace(/\s+/g,' ').trim(); return s.charAt(0).toUpperCase() + s.slice(1); };
+var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+
+var trails = DATA.sciezki.features.map(function(f){
+  var p = f.properties, g = f.geometry;
+  return { p: p, lines: g.type === 'MultiLineString' ? g.coordinates : [g.coordinates] };
+});
+var points = DATA.punkty.features.map(function(f){
+  return { p: f.properties, c: f.geometry.coordinates };
+}).sort(function(a,b){ return (a.p.kolejnosc||0) - (b.p.kolejnosc||0); });
+
+var cur = 0, sel = 0;
+
+function render(){
+  var t = trails[cur], p = t.p;
+  var pts = points.filter(function(x){ return x.p.id_sciezki === p.id_sciezki; });
+  if (sel >= pts.length) sel = 0;
+  var name = fix(p.nazwa || p.nawa || p.id_sciezki);
+  var h = '';
+  if (trails.length > 1) {
+    h += '<div class="tabs">' + trails.map(function(x,i){
+      return '<button data-t="'+i+'" aria-pressed="'+(i===cur)+'">'+esc(fix(x.p.nazwa||x.p.nawa||x.p.id_sciezki))+'</button>';
+    }).join('') + '</div>';
+  }
+  h += '<div class="kick">Ścieżka przyrodnicza</div><h1>'+esc(name)+'</h1>';
+  if (p.opis) h += '<p class="lead">'+esc(fix(p.opis))+'.</p>';
+  h += '<div class="chips">';
+  if (p.dlugosc_km != null) h += '<span class="chip"><b>'+String(p.dlugosc_km).replace('.',',')+' km</b></span>';
+  if (p.czas_min != null) h += '<span class="chip"><b>'+p.czas_min+' min</b></span>';
+  if (p.trudnosc) h += '<span class="chip">Trudność: <b>'+esc(p.trudnosc)+'</b></span>';
+  if (p.typ) h += '<span class="chip">Typ: <b>'+esc(p.typ)+'</b></span>';
+  if (p.psy) h += '<span class="chip">Psy: <b>'+esc(p.psy)+'</b></span>';
+  if (p.wozki) h += '<span class="chip">Wózki: <b>'+esc(p.wozki)+'</b></span>';
+  h += '</div>';
+  h += '<div class="map">' + mapSvg(t, pts) + '</div>';
+  h += '<h2>Przystanki</h2>';
+  if (!pts.length) {
+    h += '<p class="empty">Ta ścieżka nie ma jeszcze przystanków.</p>';
+  } else {
+    var s = pts[sel].p, c = pts[sel].c;
+    h += '<ul class="list">' + pts.map(function(x,i){
+      return '<li><button data-p="'+i+'"'+(i===sel?' aria-current="true"':'')+'><span class="num">'+(i+1)+'</span><span><b>'+esc(fix(x.p.tytul))+'</b><small>'+esc(fix(x.p.kategoria))+'</small></span></button></li>';
+    }).join('') + '</ul>';
+    h += '<article class="card"><span class="cat">'+esc(fix(s.kategoria))+'</span><h2 style="margin:0 0 8px">'+esc(fix(s.tytul))+'</h2>';
+    h += '<p style="margin:0">'+esc(fix(s.opis||s.tekst))+'.</p>';
+    var fact = s.ciekawostka || s.ciekawostk;
+    if (fact) h += '<div class="fact"><b>Ciekawostka</b>'+esc(fix(fact))+'.</div>';
+    h += '<a class="go" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination='+c[1]+','+c[0]+'">Prowadź do tego punktu →</a></article>';
+  }
+  app.innerHTML = h;
+}
+
+function mapSvg(t, pts){
+  var W = 640, pad = 40, all = [];
+  t.lines.forEach(function(l){ l.forEach(function(c){ all.push(c); }); });
+  pts.forEach(function(x){ all.push(x.c); });
+  var lons = all.map(function(c){return c[0];}), lats = all.map(function(c){return c[1];});
+  var minLon = Math.min.apply(null,lons), maxLon = Math.max.apply(null,lons);
+  var minLat = Math.min.apply(null,lats), maxLat = Math.max.apply(null,lats);
+  var k = Math.cos((minLat+maxLat)/2*Math.PI/180);
+  var spanX = Math.max((maxLon-minLon)*k, 1e-6), spanY = Math.max(maxLat-minLat, 1e-6);
+  var sc = (W-2*pad)/spanX;
+  var H = Math.max(spanY*sc + 2*pad, 220);
+  var offY = (H - spanY*sc)/2;
+  var X = function(lon){ return pad + (lon-minLon)*k*sc; };
+  var Y = function(lat){ return offY + (maxLat-lat)*sc; };
+  var s = '<svg viewBox="0 0 '+W+' '+H.toFixed(0)+'" role="img" aria-label="Mapa ścieżki">';
+  t.lines.forEach(function(l){
+    var d = l.map(function(c,i){ return (i?'L':'M')+X(c[0]).toFixed(1)+' '+Y(c[1]).toFixed(1); }).join(' ');
+    s += '<path d="'+d+'" fill="none" stroke="var(--card)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>';
+    s += '<path d="'+d+'" fill="none" stroke="var(--acc)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>';
+  });
+  var st = t.lines[0][0];
+  s += '<circle cx="'+X(st[0]).toFixed(1)+'" cy="'+Y(st[1]).toFixed(1)+'" r="7" fill="var(--ink)"/>';
+  s += '<text x="'+X(st[0]).toFixed(1)+'" y="'+(Y(st[1])-14).toFixed(1)+'" fill="var(--ink)" font-size="13" font-weight="700" text-anchor="middle">Start</text>';
+  pts.forEach(function(x,i){
+    s += '<g class="pin'+(i===sel?' on':'')+'" data-p="'+i+'"><circle cx="'+X(x.c[0]).toFixed(1)+'" cy="'+Y(x.c[1]).toFixed(1)+'" r="15"/><text x="'+X(x.c[0]).toFixed(1)+'" y="'+Y(x.c[1]).toFixed(1)+'">'+(i+1)+'</text></g>';
+  });
+  var mpp = 111320/sc, n = [50,100,200,500,1000,2000], L = 100;
+  for (var i=0;i<n.length;i++){ if (n[i]/mpp >= 60){ L = n[i]; break; } }
+  var bx = W-pad-L/mpp, by = H-16;
+  s += '<path d="M'+bx.toFixed(1)+' '+by+' h'+(L/mpp).toFixed(1)+'" stroke="var(--ink)" stroke-width="3"/>';
+  s += '<text x="'+(bx+L/mpp/2).toFixed(1)+'" y="'+(by-8)+'" fill="var(--ink)" font-size="12" text-anchor="middle">'+(L>=1000?(L/1000)+' km':L+' m')+'</text>';
+  return s + '</svg>';
+}
+
+app.addEventListener('click', function(e){
+  var tb = e.target.closest('[data-t]'), pb = e.target.closest('[data-p]');
+  if (tb) { cur = +tb.getAttribute('data-t'); sel = 0; render(); }
+  else if (pb) { sel = +pb.getAttribute('data-p'); render(); }
+});
+render();
+</script>
+</body>
+</html>
